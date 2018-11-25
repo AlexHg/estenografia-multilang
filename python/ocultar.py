@@ -1,83 +1,82 @@
-"""
-	pip install Pillow
-"""
+# pip install Pillow 
 from PIL import Image
 import math 
 
-caracter_terminacion = [1, 1, 1, 1, 1, 1, 1, 1]
+finishFlag = "11111111"
 
-def obtener_representacion_ascii(caracter):
-	return ord(caracter)
-
-def obtener_representacion_binaria(numero):
-	return bin(numero)[2:].zfill(8)
-
-def cambiar_ultimo_bit(byte, nuevo_bit):
-	return byte[:-1] + str(nuevo_bit)
-
-def binario_a_decimal(binario):
-	return int(binario, 2)
-
-def modificar_color(color_original, bit):
-	color_binario = obtener_representacion_binaria(color_original)
-	color_modificado = cambiar_ultimo_bit(color_binario, bit)
-	return binario_a_decimal(color_modificado)
-
-def obtener_lista_de_bits(texto):
+def getBitList(texto):
 	lista = []
 	for letra in texto:
-		representacion_ascii = obtener_representacion_ascii(letra)
-		representacion_binaria = obtener_representacion_binaria(representacion_ascii)
-		for bit in representacion_binaria:
+		asciiChar = charToAscii(letra)
+		binChar = intToBin(asciiChar)
+		for bit in binChar:
 			lista.append(bit)
-	for bit in caracter_terminacion:
+	for bit in finishFlag:
 		lista.append(bit)
 	return lista
 
-def ocultar_texto(mensaje, ruta_imagen_original, ruta_imagen_salida="salida.png"):
+def charToAscii(caracter):
+	return ord(caracter)
+
+def intToBin(numero):
+	return bin(numero)[2:].zfill(8)
+
+def binToInt(binario):
+	return int(binario, 2)
+
+def lastBitChange(byte, nuevo_bit):
+	return byte[:-1] + str(nuevo_bit)
+
+def colorChange(originColor, bit):
+	binColor = intToBin(originColor)
+	modColor = lastBitChange(binColor, bit)
+	return binToInt(modColor)
+
+def hideText(mensaje, imageRouteIn, imageRouteOut="salida.png"):
 	print("Ocultando mensaje: '{}'".format(mensaje))
-	imagen = Image.open(ruta_imagen_original)
+	imagen = Image.open(imageRouteIn)
 	pixeles = imagen.load()
 
-	tamaño = imagen.size
-	anchura = tamaño[0]
-	altura = tamaño[1]
+	imageSize = imagen.size
+	imageWidth = imageSize[0]
+	imageHeight = imageSize[1]
 
-	lista = obtener_lista_de_bits(mensaje)
+	lista = getBitList(mensaje) #Crea una lista de bit a partir del mensaje ingresado 
 	contador = 0
 	longitud = len(lista)
-	for x in range(anchura):
-		for y in range(altura):
+
+	#Recorre los pixeles en la imagen
+	for x in range(imageWidth):
+		for y in range(imageHeight):
 			if contador < longitud:
 				pixel = pixeles[x, y]
 				
-				#print("Pixel: {}".format(pixeles[x,y]))
-				
-				rojo = pixel[0]
-				verde = pixel[1]
-				azul = pixel[2]
-
-				print("RGB ({},{},{})".format(rojo,verde,azul))
+				#obtiene valores RGB
+				red = pixel[0]
+				green = pixel[1]
+				blue = pixel[2]
 
 				if contador < longitud:
-					rojo_modificado = modificar_color(rojo, lista[contador])
+					modRed = colorChange(red, lista[contador])
 					contador += 1
 				else:
-					rojo_modificado = rojo
+					modRed = red
 
 				if contador < longitud:
-					verde_modificado = modificar_color(verde, lista[contador])
+					modGreen = colorChange(green, lista[contador])
 					contador += 1
 				else:
-					verde_modificado = verde
+					modGreen = green
 
 				if contador < longitud:
-					azul_modificado = modificar_color(azul, lista[contador])
+					modBlue = colorChange(blue, lista[contador])
 					contador += 1
 				else:
-					azul_modificado = azul
+					modBlue = blue
 
-				pixeles[x, y] = (rojo_modificado, verde_modificado, azul_modificado)
+				pixeles[x, y] = (modRed, modGreen, modBlue)
+
+				print("RGB ({},{},{}) -> mRGB ({},{},{}) ".format(red,green,blue,modRed,modGreen,modBlue))
 			else:
 				break
 		else:
@@ -89,6 +88,10 @@ def ocultar_texto(mensaje, ruta_imagen_original, ruta_imagen_salida="salida.png"
 	else:
 		print("Advertencia: no se pudo escribir todo el mensaje, sobraron {} caracteres".format( math.floor((longitud - contador) / 8) ))
 
-	imagen.save(ruta_imagen_salida)
+	imagen.save(imageRouteOut)
 
-ocultar_texto("Hola, mundo. Esto es un mensaje oculto desde Alex", "wall.png")
+hideText(
+	"@--El Himno Nacional Mexicano es uno de los tres símbolos patrios establecidos por la ley en dicho país junto con el escudo y la bandera. Pese a conocerse y usarse como tal desde 1854, solo se hizo oficial desde 1943, a partir de un decreto expedido por Manuel Ávila Camacho, quien fungió como presidente de México de 1940 a 1946. Y desde febrero de 1984 su uso es regulado por la Secretaría de Gobernación con base en la Ley sobre el escudo, la bandera y el himno nacional La letra del himno alude a victorias mexicanas en batallas, trata sobre la defensa de la patria, las virtudes del pueblo que la ejerce y el sacrificio que conlleva. Sus estrofas y estribillo fueron compuestas por el poeta potosino Francisco González Bocanegra en 1853, mientras que su música, obra del músico español Jaime Nunó, fue compuesta al año siguiente. En su versión original, el himno está compuesto por diez estrofas, pero en los noventa años que pasó para su oficialización pasó por varias modificaciones o intentos de modificación, y quedó reducido solo a cuatro estrofas y el estribillo a partir de 1943, cuando se oficializó.", 
+	"wall.png",
+	"wall_himno.png"
+)

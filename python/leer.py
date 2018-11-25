@@ -1,68 +1,66 @@
-"""
-	pip install Pillow
-"""
+# pip install Pillow
 from PIL import Image
 
-caracter_terminacion = "11111111"
-def obtener_lsb(byte):
+finishFlag = "11111111"
+
+def lastBit(byte):
 	return byte[-1]
 
-def obtener_representacion_binaria(numero):
+def intToBin(numero):
 	return bin(numero)[2:].zfill(8)
 
-def binario_a_decimal(binario):
+def binToInt(binario):
 	return int(binario, 2)
 
-def caracter_desde_codigo_ascii(numero):
+def asciiToChar(numero):
 	return chr(numero)
 
-def leer(ruta_imagen):
-	imagen = Image.open(ruta_imagen)
+def showText(imageRoute):
+	imagen = Image.open(imageRoute)
 	pixeles = imagen.load()
 
-	tamaño = imagen.size
-	anchura = tamaño[0]
-	altura = tamaño[1]
+	imageSize = imagen.size
+	imageWidth = imageSize[0]
+	imageHeight = imageSize[1]
 
 	byte = ""
 	mensaje = ""
 
-	for x in range(anchura):
-		for y in range(altura):
+	for x in range(imageWidth):
+		for y in range(imageHeight):
 			pixel = pixeles[x, y]
 
-			rojo = pixel[0]
-			verde = pixel[1]
-			azul = pixel[2]
+			red = pixel[0]
+			green = pixel[1]
+			blue = pixel[2]
             
-			print("RGB ({},{},{})".format(rojo,verde,azul))
-
-			byte += obtener_lsb(obtener_representacion_binaria(rojo))
+			byte += lastBit(intToBin(red))
 			if len(byte) >= 8:
-				if byte == caracter_terminacion:
+				if byte == finishFlag:
 					break
-				mensaje += caracter_desde_codigo_ascii(binario_a_decimal(byte))
+				mensaje += asciiToChar(binToInt(byte))
 				byte = ""
 
-			byte += obtener_lsb(obtener_representacion_binaria(verde))
+			byte += lastBit(intToBin(green))
 			if len(byte) >= 8:
-				if byte == caracter_terminacion:
+				if byte == finishFlag:
 					break
-				mensaje += caracter_desde_codigo_ascii(binario_a_decimal(byte))
+				mensaje += asciiToChar(binToInt(byte))
 				byte = ""
 
-			byte += obtener_lsb(obtener_representacion_binaria(azul))
+			byte += lastBit(intToBin(blue))
 			if len(byte) >= 8:
-				if byte == caracter_terminacion:
+				if byte == finishFlag:
 					break
-				mensaje += caracter_desde_codigo_ascii(binario_a_decimal(byte))
+				mensaje += asciiToChar(binToInt(byte))
 				byte = ""
 
+			print("RGB ({},{},{})".format(red,green,blue))
 		else:
 			continue
 		break
 	return mensaje
 
-mensaje = leer("salida.png")
+mensaje = showText("wall_himno.png")
 print("El mensaje oculto es:")
 print(mensaje)
